@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+locustfile.py
+app.py
+index.html
+styles.css
+DEPLOYMENT.md
