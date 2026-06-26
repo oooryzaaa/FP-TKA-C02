@@ -70,14 +70,14 @@ Internet (Client Browser / Locust)
 
 ### Spesifikasi VM & Estimasi Biaya
 
-| VM | Fungsi | Size | vCPU | RAM | OS | Harga/Bulan |
-|----|--------|------|------|-----|----|-------------|
-| vm-lb-fe | Nginx LB + Frontend | [ISI SIZE] | [ISI] | [ISI] GB | Ubuntu 22.04 | $[ISI] |
-| vm-be1 | Flask + Gunicorn + MongoDB | [ISI SIZE] | [ISI] | [ISI] GB | Ubuntu 22.04 | $[ISI] |
-| vm-be2 | Flask + Gunicorn | [ISI SIZE] | [ISI] | [ISI] GB | Ubuntu 22.04 | $[ISI] |
-| **Total** | | | | | | **$[ISI]/bulan** |
+| Komponen | Instance | vCPU | RAM | Storage | Harga/Bulan |
+|----------|----------|------|-----|---------|-------------|
+| VM Backend | B2s | 2 | 4 GB | 30 GB | ~$35 |
+| VM MongoDB | B1s | 1 | 1 GB | 30 GB | ~$15 |
+| Azure Load Balancer | Basic | — | — | — | ~$18 |
+| **Total** | | | | | **~$68/bulan ✅** |
 
-> Budget maksimal: **$75/bulan** (~Rp 1.3 juta). Total biaya dalam batas budget.
+> Total di bawah budget $75 (~Rp1.3 juta) — sisa ~$7 untuk buffer
 
 ### Justifikasi Pemilihan Konfigurasi
 
