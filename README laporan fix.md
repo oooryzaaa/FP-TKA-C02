@@ -515,6 +515,7 @@ mongosh orders_db --eval "db.orders.deleteMany({})"
 ![Charts S4](result/s4_charts.png)
 ![Statistics S4](result/s4_statistics.png)
 ![htop S4](result/s4_htop.png)
+![log S4](result/s4_log.png)
 
 **Hasil:** Max Users = **[ISI]** sebelum failure muncul
 
@@ -525,6 +526,9 @@ mongosh orders_db --eval "db.orders.deleteMany({})"
 ![Charts S5](result/s5_charts.png)
 ![Statistics S5](result/s5_statistics.png)
 ![htop S5](result/s5_htop.png)
+![htop S5](result/s5_htop(1).png)
+![htop S5](result/s5_htop(2).png)
+![log S5](result/s5_log.png)
 
 **Hasil:** Max Users = **[ISI]** sebelum failure muncul
 
