@@ -451,6 +451,7 @@ Response:
 ### 4.6 Tampilan Frontend
 
 ![Frontend](result/frontend.png)
+![Architecure](result/architecture.png)
 
 Frontend dapat diakses di `http://70.153.148.59`. Terhubung ke API backend melalui endpoint `/api/` yang di-strip oleh Nginx LB sebelum diteruskan ke backend pool.
 
