@@ -485,7 +485,7 @@ mongosh orders_db --eval "db.orders.deleteMany({})"
 ![Statistics S1](result/s1_statistics.png)
 ![htop S1](result/s1_htop.png)
 
-**Hasil:** RPS Tertinggi = **[ISI]** RPS dengan Failure Rate **0%** pada **[ISI]** concurrent users
+**Hasil:** RPS Tertinggi = **70.88** RPS dengan Failure Rate **0%** pada **300** concurrent users
 
 ### 5.2 Skenario 2 — Peak Concurrency Spawn Rate 50
 
@@ -495,7 +495,7 @@ mongosh orders_db --eval "db.orders.deleteMany({})"
 ![Statistics S2](result/s2_statistics.png)
 ![htop S2](result/s2_htop.png)
 
-**Hasil:** Max Users = **[ISI]** sebelum failure muncul
+**Hasil:** Max Users = **300** sebelum failure muncul
 
 ### 5.3 Skenario 3 — Peak Concurrency Spawn Rate 100
 
@@ -506,7 +506,7 @@ mongosh orders_db --eval "db.orders.deleteMany({})"
 ![htop S3](result/s3_htop.png)
 ![htop S3](result/s3_htop(1).png)
 
-**Hasil:** Max Users = **[ISI]** sebelum failure muncul
+**Hasil:** Max Users = **300** sebelum failure muncul, tetapi RPS nya naik menjadi 93.83
 
 ### 5.4 Skenario 4 — Peak Concurrency Spawn Rate 200
 
@@ -517,7 +517,7 @@ mongosh orders_db --eval "db.orders.deleteMany({})"
 ![htop S4](result/s4_htop.png)
 ![log S4](result/s4_log.png)
 
-**Hasil:** Max Users = **[ISI]** sebelum failure muncul
+**Hasil:** Max Users = **300** sebelum failure muncul, tetapi RPS nya naik menjadi 153.2
 
 ### 5.5 Skenario 5 — Peak Concurrency Spawn Rate 500
 
@@ -530,7 +530,7 @@ mongosh orders_db --eval "db.orders.deleteMany({})"
 ![htop S5](result/s5_htop(2).png)
 ![log S5](result/s5_log.png)
 
-**Hasil:** Max Users = **[ISI]** sebelum failure muncul
+**Hasil:** Max Users = **300** sebelum failure muncul, tetapi RPS nya turun menjadi 113.8
 
 ### 5.6 Tabel Ringkasan Hasil
 
