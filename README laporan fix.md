@@ -81,16 +81,10 @@ Internet (Client Browser / Locust)
 
 ### Justifikasi Pemilihan Konfigurasi
 
-**Kenapa 2 VM Backend + 1 VM LB/FE:**
-Pemisahan Load Balancer dari backend memungkinkan distribusi traffic yang efisien tanpa menambah beban ke server aplikasi. Dengan 2 VM backend, sistem memiliki basic redundancy — jika salah satu VM bermasalah, traffic otomatis diarahkan ke VM lain.
-
-**Kenapa MongoDB di vm-be1 (bukan VM terpisah):**
-Pertimbangan budget — memisahkan MongoDB ke VM ketiga menambah biaya ~$15-20/bulan. Dengan menempatkan MongoDB di vm-be1 dan mengakses dari vm-be2 via private IP, latensi tetap rendah karena berada di Virtual Network yang sama.
-
-**Kenapa Nginx sebagai LB (bukan Azure Load Balancer):**
-Nginx memberikan fleksibilitas routing yang lebih detail — memisahkan traffic API (`/order`, `/orders`) dari static file frontend (`/`) — dengan zero additional cost, sesuai constraint budget $75/bulan.
-
----
+- Kenapa B2s untuk backend: 2 vCPU dedicated cukup untuk handle Gunicorn multi-worker
+- Kenapa B1s untuk MongoDB: DB tidak kena traffic langsung, burstable CPU cukup
+- Kenapa Load Balancer Basic: budget terbatas, fitur Basic sudah cukup untuk FP ini
+- Trade-off: B1s burstable CPU bisa throttle jika terus-menerus dipakai intensif
 
 ## 3. Implementasi
 
