@@ -504,6 +504,7 @@ mongosh orders_db --eval "db.orders.deleteMany({})"
 ![Charts S3](result/s3_charts.png)
 ![Statistics S3](result/s3_statistics.png)
 ![htop S3](result/s3_htop.png)
+![htop S3](result/s3_htop(1).png)
 
 **Hasil:** Max Users = **[ISI]** sebelum failure muncul
 
