@@ -536,11 +536,11 @@ mongosh orders_db --eval "db.orders.deleteMany({})"
 
 | Skenario | Spawn Rate | Max Users (0% fail) | RPS Tertinggi | Avg Response Time | Failure Rate |
 |----------|------------|---------------------|---------------|-------------------|--------------|
-| 1 — Maks RPS | Bertahap | [ISI] | [ISI] RPS | [ISI] ms | 0% |
-| 2 — SR 50 | 50 | [ISI] | [ISI] RPS | [ISI] ms | 0% |
-| 3 — SR 100 | 100 | [ISI] | [ISI] RPS | [ISI] ms | 0% |
-| 4 — SR 200 | 200 | [ISI] | [ISI] RPS | [ISI] ms | 0% |
-| 5 — SR 500 | 500 | [ISI] | [ISI] RPS | [ISI] ms | 0% |
+| 1 — Maks RPS | Bertahap | 300 | 70.88 RPS | 1888.06 ms | 0% |
+| 2 — SR 50 | 50 | 300 | 70.88 RPS | 1888.06 ms | 0% |
+| 3 — SR 100 | 100 | 300 | 93.83 RPS | 1446.87 ms | 0% |
+| 4 — SR 200 | 200 |300 | 153.2 RPS | 1446.97 ms | 0% |
+| 5 — SR 500 | 500 | 300 | 113.8 RPS | 1371.97 ms | 0% |
 
 ### 5.7 Analisis Bottleneck
 
@@ -564,10 +564,10 @@ MongoDB dan Gunicorn berjalan di vm-be1 yang sama, sehingga under heavy load ked
 
 ### Kesimpulan
 
-Sistem Order Processing Service berhasil di-deploy di Microsoft Azure dengan arsitektur 3 VM dan mampu melayani hingga **[ISI] RPS** dengan 0% failure rate.
+Sistem Order Processing Service berhasil di-deploy di Microsoft Azure dengan arsitektur 3 VM dan mampu melayani hingga **153.2 RPS** dengan 0% failure rate.
 
 Dari hasil load testing 5 skenario:
-- Sistem stabil hingga **[ISI] concurrent user** dengan spawn rate bertahap (Skenario 1)
+- Sistem stabil hingga **300 concurrent user** dengan spawn rate bertahap (Skenario 1)
 - Failure pertama muncul saat concurrent user melebihi **~400** akibat Gunicorn worker exhaustion
 - Bottleneck utama bukan di CPU (max ~13%) melainkan di response time `GET /orders` yang mengembalikan seluruh koleksi tanpa batas
 - Error yang muncul adalah **502 Bad Gateway** — Gunicorn kehabisan worker, bukan crash server
