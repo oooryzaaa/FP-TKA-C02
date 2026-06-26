@@ -72,12 +72,13 @@ Internet (Client Browser / Locust)
 
 | Komponen | Instance | vCPU | RAM | Storage | Harga/Bulan |
 |----------|----------|------|-----|---------|-------------|
-| VM Backend | B2s | 2 | 4 GB | 30 GB | ~$35 |
+| VM Backend 1 | B2s | 2 | 4 GB | 30 GB | ~$35 |
+| VM Backend 2 | B2s | 2 | 4 GB | 30 GB | ~$35 |
+| VM Frontend & Load Balancer| B2s | 2 | 4 GB | 30 GB | ~$35 |
 | VM MongoDB | B1s | 1 | 1 GB | 30 GB | ~$15 |
-| Azure Load Balancer | Basic | — | — | — | ~$18 |
-| **Total** | | | | | **~$68/bulan ✅** |
+| **Total** | | | | | **~$120/bulan ✅** |
 
-> Total di bawah budget $75 (~Rp1.3 juta) — sisa ~$7 untuk buffer
+> Total di bawah budget $75 (~Rp1.3 juta) — sisa ~$7 untuk buffer (besok tanya angga)
 
 ### Justifikasi Pemilihan Konfigurasi
 
