@@ -3,16 +3,16 @@
 
 ### Anggota Kelompok
 
-| Nama | NRP | Divisi / Tugas |
-|------|-----|----------------|
-| Oryza Qiara Ramadhani | 5027241084 | (D1) Infrastruktur & Arsitektur |
-| Az Zahrra Tasya Adelia | 5027241087 | (D1) Infrastruktur & Arsitektur |
-| Naila Raniyah Hanan | 5027241078 | (D2) Deployment & Backend |
-| Nadia Kirana Afifah Prahandita | 5027241005 | (D2) Deployment & Backend |
-| Kaisar Hanif Pratama | 5027241029 | (D3) Load Testing |
-| Gemilang Ananda Lingua | 5027241072 | (D3) Load Testing |
-| Muhammad Huda Rabbani | 5027241098 | (D4) Dokumentasi & Laporan |
-| Angga Firmansyah | 5027241062 | (D4) Dokumentasi & Laporan |
+| Nama | NRP |
+|------|-----|
+| Oryza Qiara Ramadhani | 5027241084 |
+| Az Zahrra Tasya Adelia | 5027241087 |
+| Naila Raniyah Hanan | 5027241078 |
+| Nadia Kirana Afifah Prahandita |
+| Kaisar Hanif Pratama | 5027241029 |
+| Gemilang Ananda Lingua | 5027241072 |
+| Muhammad Huda Rabbani | 5027241098 |
+| Angga Firmansyah | 5027241062 |
 
 ---
 
