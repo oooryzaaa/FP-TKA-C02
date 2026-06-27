@@ -3,29 +3,28 @@
 
 ### Anggota Kelompok
 
-| Nama | NRP |
-|------|-----|
-| Oryza Qiara Ramadhani | 5027241084 |
-| Az Zahrra Tasya Adelia | 5027241087 |
-| Naila Raniyah Hanan | 5027241078 |
-| Nadia Kirana Afifah Prahandita | 5027241005 |
-| Muhammad Huda Rabbani | 5027241098 |
-| Kaisar Hanif Pratama | 5027241029 |
-| Gemilang Ananda Lingua | 5027241072 |
-| Angga Firmansyah | 5027241062 |
+| Nama | NRP | Divisi / Tugas |
+|------|-----|----------------|
+| Oryza Qiara Ramadhani | 5027241084 | (D1) Infrastruktur & Arsitektur |
+| Az Zahrra Tasya Adelia | 5027241087 | (D1) Infrastruktur & Arsitektur |
+| Naila Raniyah Hanan | 5027241078 | (D2) Deployment & Backend |
+| Nadia Kirana Afifah Prahandita | 5027241005 | (D2) Deployment & Backend |
+| Kaisar Hanif Pratama | 5027241029 | (D3) Load Testing |
+| Gemilang Ananda Lingua | 5027241072 | (D3) Load Testing |
+| Muhammad Huda Rabbani | 5027241098 | (D4) Dokumentasi & Laporan |
+| Angga Firmansyah | 5027241062 | (D4) Dokumentasi & Laporan |
 
 ---
 
-## 1. Introduction
+## 1. Introduction & Workflow Tim
 
 Proyek ini merupakan implementasi **Order Processing Service** — layanan backend inti untuk platform e-commerce yang menangani pembuatan pesanan, pengecekan status, dan riwayat transaksi. Layanan ini di-deploy di atas infrastruktur cloud **Microsoft Azure** dengan arsitektur yang dirancang untuk menangani lonjakan traffic tinggi seperti flash sale dan promo.
 
-Sebagai Cloud Engineer, tantangan yang diselesaikan meliputi:
-- Deploy REST API berbasis **Python Flask** yang dapat melayani ribuan request per detik
-- Konfigurasi **Nginx Load Balancer** untuk distribusi traffic ke multiple backend VM
-- Optimasi performa dengan **Gunicorn multi-worker** dan Nginx sebagai reverse proxy
-- **MongoDB** sebagai database dengan index optimasi untuk query cepat
-- Pengujian kapasitas sistem melalui load testing dengan **Locust** 5 skenario
+Sesuai dengan *workflow* internal tim kami, pengerjaan dibagi menjadi 4 divisi utama agar berjalan paralel dan efisien:
+1. **Divisi 1:** Melakukan *provisioning* 3 Virtual Machine di Azure beserta konfigurasi Network Security Group (NSG).
+2. **Divisi 2:** Melakukan setup MongoDB, *deploy* Python Flask menggunakan Gunicorn, serta mengatur Nginx Reverse Proxy dan Nginx Load Balancer.
+3. **Divisi 3:** Mengeksekusi pengujian kapasitas sistem (*Load Testing*) dalam 5 skenario secara bertahap menggunakan Locust.
+4. **Divisi 4:** Mengonsolidasikan arsitektur, parameter penilaian, metrik *testing*, dan analisis *bottleneck* ke dalam dokumentasi pelaporan (*README*).
 
 ---
 
@@ -59,7 +58,7 @@ Internet (Client Browser / Locust)
 │  Nginx (port 80)│  │  Nginx (port 80)│
 │  MongoDB ◄──────┼──┘  (port 27017)  │
 │  (port 27017)   │                   │
-└─────────────────┘  └─────────────────┘
+└─────────────────┘  └─────────────────┘ 
 ```
 
 **Catatan Desain:**
