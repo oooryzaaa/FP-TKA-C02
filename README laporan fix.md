@@ -450,109 +450,256 @@ Frontend dapat diakses di `http://70.153.148.59`. Terhubung ke API backend melal
 
 ---
 
-## 5. Hasil Load Testing
+# Hasil Load Testing
 
-Load testing dilakukan menggunakan Locust dari laptop lokal dengan target http://70.153.148.59. Pembersihan antarskenario (db.orders.deleteMany({})) selalu dilakukan.
+## Metodologi Pengujian
 
-**Konfigurasi Locust:**
-```bash
-locust -f Resources/Test/locustfile.py --host=http://70.153.148.59
+Pengujian performa dilakukan menggunakan **Locust** yang dijalankan dari laptop lokal dengan target **Nginx Load Balancer** pada alamat `http://70.153.148.59`. Arsitektur sistem terdiri atas:
+
+- **Load Balancer** : Nginx
+- **Backend Server** : 2 VM Flask + Gunicorn (3 worker pada masing-masing VM)
+- **Database** : MongoDB (`10.0.0.5`)
+- **Load Testing Tool** : Locust
+
+Pengujian dilakukan dalam dua tahapan, yaitu **capacity testing** untuk mengetahui batas kemampuan sistem dan **pengujian resmi** menggunakan jumlah pengguna yang telah ditentukan.
+
+---
+
+## 1. Capacity Testing (Percobaan Awal)
+
+Pada tahap awal dilakukan pengujian dengan menaikkan jumlah pengguna secara bertahap, yaitu:
+
+| Concurrent User | Ramp Up |
+|----------------:|--------:|
+| 50 | 10 |
+| 100 | 10 |
+| 200 | 20 |
+| 300 | 30 |
+| 400 | 40 |
+| 500 | 50 |
+
+Tujuan pengujian ini adalah untuk mengetahui kapasitas maksimum sistem sebelum mulai mengalami penurunan performa.
+
+### Hasil Capacity Testing
+
+- **50–300 concurrent user** dapat dilayani dengan baik tanpa request failure.
+- Pada **400 concurrent user** mulai muncul **HTTP 502 Bad Gateway** dengan failure sekitar **4.32%**, menandakan backend mulai mencapai batas kemampuan.
+- Pada **500 concurrent user** jumlah request gagal semakin meningkat dan response time menjadi jauh lebih tinggi dibandingkan skenario sebelumnya.
+- Berdasarkan hasil tersebut, **300 concurrent user** dipilih sebagai jumlah pengguna tetap pada seluruh skenario resmi agar setiap pengujian dapat dibandingkan secara adil.
+
+---
+
+## 2. Pengujian Resmi
+
+Pada tahap ini jumlah pengguna dikunci pada **300 concurrent user**, sedangkan variabel yang diubah hanyalah **spawn rate (ramp up)**.
+
+### Ringkasan Hasil
+
+| Skenario | Users | Ramp Up | Average RPS | Failure | Status |
+|----------|------:|---------:|------------:|---------:|--------|
+| Skenario 1 | 300 | 50 | **73.52 req/s** | **0%** | Stabil |
+| Skenario 2 | 300 | 100 | **68.35 req/s** | **0%** | Stabil |
+| Skenario 3 | 300 | 200 | **80.35 req/s** | **0%** | Stabil |
+| Skenario 4 | 300 | 300 | **104.83 req/s** | **0%** | Stabil |
+| Skenario 5 | 300 | 500 | **99.88 req/s** | **0%** | Stabil |
+
+---
+
+## Statistik Pengujian
+
+| Skenario | Median (50th) | 95th Percentile | Average RPS | Failure |
+|----------|--------------:|----------------:|------------:|---------:|
+| Ramp Up 50 | ±96 ms | ±9.2 s | 73.52 | 0% |
+| Ramp Up 100 | ±84 ms | ±9.2 s | 68.35 | 0% |
+| Ramp Up 200 | ±75 ms | ±9.2 s | 80.35 | 0% |
+| Ramp Up 300 | ±94 ms | ±8.7 s | 104.83 | 0% |
+| Ramp Up 500 | ±110 ms | ±9.1 s | 99.88 | 0% |
+
+> Nilai median merupakan response time agregat (50th percentile), sedangkan 95th percentile menunjukkan waktu respons maksimum yang masih dialami oleh 95% request.
+
+---
+
+## Monitoring Resource Server
+
+Monitoring dilakukan menggunakan **htop** pada backend server ketika pengujian berlangsung.
+
+| Parameter | Hasil Pengamatan |
+|-----------|------------------|
+| CPU Usage | ±15–30% |
+| Memory Usage | ±560 MB / 3.7 GB |
+| Load Average | ±0.2–1.2 |
+| Swap | 0 KB |
+
+Hasil monitoring menunjukkan bahwa penggunaan CPU dan memori masih berada pada kondisi yang relatif rendah. Hal ini mengindikasikan bahwa bottleneck utama bukan berasal dari keterbatasan resource server, melainkan dari proses penanganan request ketika jumlah koneksi aktif meningkat secara signifikan.
+
+---
+
+## Analisis Hasil
+
+Berdasarkan hasil pengujian, konfigurasi **Nginx Load Balancer** dengan dua backend Flask + Gunicorn mampu melayani **300 concurrent user** secara konsisten tanpa menghasilkan request failure pada seluruh skenario resmi.
+
+Perubahan nilai **spawn rate** tidak memberikan pengaruh yang signifikan terhadap tingkat keberhasilan request. Seluruh skenario tetap menghasilkan **0% failure**, sehingga sistem dapat dikatakan stabil terhadap variasi kecepatan pertambahan pengguna.
+
+Nilai throughput (Average RPS) meningkat pada spawn rate yang lebih tinggi, menunjukkan bahwa proses distribusi request oleh load balancer berjalan dengan baik. Meskipun demikian, endpoint **GET /orders** masih memiliki nilai response time yang lebih tinggi dibanding endpoint lainnya sehingga menjadi kandidat utama bottleneck aplikasi.
+
+Pada capacity testing, bottleneck mulai muncul ketika jumlah pengguna mencapai **400 concurrent user**. Kondisi ini ditandai dengan munculnya **HTTP 502 Bad Gateway**, meningkatnya response time, serta bertambahnya request failure. Hal tersebut menunjukkan bahwa backend telah mencapai kapasitas maksimal dalam menangani request secara bersamaan.
+
+Dengan demikian, konfigurasi sistem saat ini memiliki kapasitas operasional yang aman pada kisaran **300 concurrent user**.
+
+---
+
+# Dokumentasi Pengujian
+
+## Capacity Testing
+
+### Capacity Testing - 50 Concurrent User
+
+#### Statistics
+
+```text
+docs/images/load-testing/capacity/50-users/statistics.png
 ```
 
-**Skenario request di locustfile.py:**
-| Task | Method | Endpoint | Bobot |
-|------|--------|----------|-------|
-| create_order | POST | /order | 50% |
-| get_all_orders | GET | /orders | 30% |
-| get_order_by_id | GET | /order/\<id\> | 20% |
-| update_order | PUT | /order/\<id\> | 10% |
+#### Charts
 
-**Cleanup antar skenario:**
-```bash
-mongosh orders_db --eval "db.orders.deleteMany({})"
+```text
+docs/images/load-testing/capacity/50-users/charts.png
 ```
 
-### 5.1 Skenario 1 — Maksimum RPS (0% Failure)
+---
 
-**Parameter:** User dinaikkan bertahap (50 → 100 → 200 → 300 → 400), durasi 60 detik per run
+### Capacity Testing - 100 Concurrent User
+
+#### Statistics
+
+```text
+docs/images/load-testing/capacity/100-users/statistics.png
+```
+
+#### Charts
+
+```text
+docs/images/load-testing/capacity/100-users/charts.png
+```
+
+---
+
+### Capacity Testing - 500 Concurrent User (Failure)
+
+#### Statistics
+
+```text
+docs/images/load-testing/capacity/500-users/statistics.png
+```
+
+#### Failures
+
+```text
+docs/images/load-testing/capacity/500-users/failures.png
+```
+
+#### htop
+
+```text
+docs/images/load-testing/capacity/500-users/htop.png
+```
+
+---
+
+# Skenario Resmi
+
+## Skenario 1 — 300 Users, Ramp Up 50
+
+### Statistics
+
+![Statistics S1](result/s1_statistics.png)
+
+### Charts
 
 ![Charts S1](result/s1_charts.png)
-![Statistics S1](result/s1_statistics.png)
+
+### htop
+
 ![htop S1](result/s1_htop.png)
 
-**Hasil:** RPS Tertinggi = **70.88** RPS dengan Failure Rate **0%** pada **300** concurrent users
+---
 
-### 5.2 Skenario 2 — Peak Concurrency Spawn Rate 50
+## Skenario 2 — 300 Users, Ramp Up 100
 
-**Parameter:** Spawn rate tetap 50, user dinaikkan bertahap sampai failure muncul
+### Statistics
+
+![Statistics S2](result/s2_statistics.png)
+
+### Charts
 
 ![Charts S2](result/s2_charts.png)
-![Statistics S2](result/s2_statistics.png)
+
+### htop
+
 ![htop S2](result/s2_htop.png)
 
-**Hasil:** Max Users = **300** sebelum failure muncul
+---
 
-### 5.3 Skenario 3 — Peak Concurrency Spawn Rate 100
+## Skenario 3 — 300 Users, Ramp Up 200
 
-**Parameter:** Spawn rate tetap 100, user dinaikkan bertahap sampai failure muncul
+### Statistics
+
+![Statistics S3](result/s3_statistics.png)
+
+### Charts
 
 ![Charts S3](result/s3_charts.png)
-![Statistics S3](result/s3_statistics.png)
+
+### htop
+
 ![htop S3](result/s3_htop.png)
 ![htop S3](result/s3_htop(1).png)
 
-**Hasil:** Max Users = **300** sebelum failure muncul, tetapi RPS nya naik menjadi 93.83
+---
 
-### 5.4 Skenario 4 — Peak Concurrency Spawn Rate 200
+## Skenario 4 — 300 Users, Ramp Up 300
 
-**Parameter:** Spawn rate tetap 200, user dinaikkan bertahap sampai failure muncul
+### Statistics
+
+![Statistics S4](result/s4_statistics.png)
+
+### Charts
 
 ![Charts S4](result/s4_charts.png)
-![Statistics S4](result/s4_statistics.png)
+
+### htop
+
 ![htop S4](result/s4_htop.png)
+
+### log
+
 ![log S4](result/s4_log.png)
 
-**Hasil:** Max Users = **300** sebelum failure muncul, tetapi RPS nya naik menjadi 153.2
+---
 
-### 5.5 Skenario 5 — Peak Concurrency Spawn Rate 500
+## Skenario 5 — 300 Users, Ramp Up 500
 
-**Parameter:** Spawn rate tetap 500, user dinaikkan bertahap sampai failure muncul
+### Statistics
+
+![Statistics S5](result/s5_statistics.png)
+
+### Charts
 
 ![Charts S5](result/s5_charts.png)
-![Statistics S5](result/s5_statistics.png)
+
+### htop
+
 ![htop S5](result/s5_htop.png)
 ![htop S5](result/s5_htop(1).png)
 ![htop S5](result/s5_htop(2).png)
+
+### log
+
 ![log S5](result/s5_log.png)
 
-**Hasil:** Max Users = **300** sebelum failure muncul, tetapi RPS nya turun menjadi 113.8
+---
 
-### 5.6 Tabel Ringkasan Hasil
-
-| Skenario | Spawn Rate | Max Users (0% fail) | RPS Tertinggi | Avg Response Time | Failure Rate |
-|----------|------------|---------------------|---------------|-------------------|--------------|
-| 1 — Maks RPS | Bertahap | 300 | 70.88 RPS | 1888.06 ms | 0% |
-| 2 — SR 50 | 50 | 300 | 70.88 RPS | 1888.06 ms | 0% |
-| 3 — SR 100 | 100 | 300 | 93.83 RPS | 1446.87 ms | 0% |
-| 4 — SR 200 | 200 |300 | 153.2 RPS | 1446.97 ms | 0% |
-| 5 — SR 500 | 500 | 300 | 113.8 RPS | 1371.97 ms | 0% |
-
-### 5.7 Analisis Bottleneck
-
-Berdasarkan hasil load testing dan monitoring resource via `htop`:
-
-**1. GET /orders — Response Time Tinggi**
-
-Endpoint `GET /orders` mengembalikan seluruh koleksi tanpa pagination. Meski sudah ada index, pengembalian ribuan array data membebani response time secara drastis saat concurrent user memuncak.
-
-**2. Kompetisi Resource di vm-be1**
-
-MongoDB dan Gunicorn berjalan di `vm-be1` yang sama. Under heavy load, I/O database dan CPU Flask saling berbagi antrean instruksi. Namun, peningkatan dari 1 vCPU ke 2 vCPU telah banyak meredam risiko crash.
-
-**3. Kesimpulan Error 502 Bad Gateway**
-
-Sistem mulai mengalami error **502 Bad Gateway** pada traffic peak mendadak (Spawn Rate > 200) dikarenakan kelima Gunicorn worker kehabisan soket untuk merespons antrean request baru (Worker queue exhaustion).
-
+> **Catatan:** Ganti seluruh path gambar di atas sesuai struktur folder pada repository GitHub. Sebagai contoh, apabila gambar disimpan pada folder `docs/images/load-testing/`, maka README akan otomatis menampilkan seluruh screenshot ketika diunggah ke GitHub.
 ---
 
 ## 6. Kesimpulan dan Saran
