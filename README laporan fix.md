@@ -542,12 +542,15 @@ mongosh orders_db --eval "db.orders.deleteMany({})"
 Berdasarkan hasil load testing dan monitoring resource via `htop`:
 
 **1. GET /orders — Response Time Tinggi**
+
 Endpoint `GET /orders` mengembalikan seluruh koleksi tanpa pagination. Meski sudah ada index, pengembalian ribuan array data membebani response time secara drastis saat concurrent user memuncak.
 
 **2. Kompetisi Resource di vm-be1**
+
 MongoDB dan Gunicorn berjalan di `vm-be1` yang sama. Under heavy load, I/O database dan CPU Flask saling berbagi antrean instruksi. Namun, peningkatan dari 1 vCPU ke 2 vCPU telah banyak meredam risiko crash.
 
 **3. Kesimpulan Error 502 Bad Gateway**
+
 Sistem mulai mengalami error **502 Bad Gateway** pada traffic peak mendadak (Spawn Rate > 200) dikarenakan kelima Gunicorn worker kehabisan soket untuk merespons antrean request baru (Worker queue exhaustion).
 
 ---
