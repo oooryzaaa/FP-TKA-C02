@@ -62,22 +62,18 @@ Internet (Client Browser / Locust)
 ```
 
 **Catatan Desain:**
-- MongoDB di-install di **vm-be1** (bukan VM terpisah) sebagai pertimbangan efisiensi budget
-- vm-be2 mengakses MongoDB di vm-be1 via **private IP 10.0.0.5:27017** (internal network, latensi <1ms)
-- Frontend di-serve langsung dari **vm-lb-fe** oleh Nginx (tidak di-forward ke backend)
-- Semua API request di-proxy oleh Nginx LB ke upstream backend pool (BE1 + BE2)
+- MongoDB di-install di vm-be1 (bukan VM terpisah) sebagai pertimbangan efisiensi budget.
+- vm-be2 mengakses MongoDB di vm-be1 melalui private IP 10.0.0.5:27017 dalam jaringan internal (latensi <1ms).
+- Frontend di-serve langsung dari vm-lb-fe oleh Nginx, sedangkan request API akan di-proxy oleh Nginx LB ke upstream backend pool (BE1 + BE2).
 
 ### Spesifikasi VM & Estimasi Biaya
 
-| Komponen | Instance | vCPU | RAM | Storage | Harga/Bulan |
+| Komponen | Spesifikasi | vCPU | RAM | Storage | Harga/Bulan |
 |----------|----------|------|-----|---------|-------------|
-| VM Backend 1 | B2s | 2 | 4 GB | 30 GB | ~$35 |
-| VM Backend 2 | B2s | 2 | 4 GB | 30 GB | ~$35 |
-| VM Frontend & Load Balancer| B2s | 2 | 4 GB | 30 GB | ~$35 |
-| VM MongoDB | B1s | 1 | 1 GB | 30 GB | ~$15 |
-| **Total** | | | | | **~$120/bulan ✅** |
-
-> Total di bawah budget $75 (~Rp1.3 juta) — sisa ~$7 untuk buffer (besok tanya angga)
+| VM Backend 1 | B2s | 2 | 4 GB | 30 GB | $30 |
+| VM Backend 2 | B2s | 2 | 4 GB | 30 GB | $30 |
+| VM Frontend & Load Balancer| B2s | 2 | 1 GB | 30 GB | ~$12 |
+| **Total** | | | | | **$72/bulan ✅** |
 
 ### Justifikasi Pemilihan Konfigurasi
 
