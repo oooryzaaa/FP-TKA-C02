@@ -77,10 +77,8 @@ Internet (Client Browser / Locust)
 
 ### Justifikasi Pemilihan Konfigurasi
 
-- Kenapa B2s untuk backend: 2 vCPU dedicated cukup untuk handle Gunicorn multi-worker
-- Kenapa B1s untuk MongoDB: DB tidak kena traffic langsung, burstable CPU cukup
-- Kenapa Load Balancer Basic: budget terbatas, fitur Basic sudah cukup untuk FP ini
-- Trade-off: B1s burstable CPU bisa throttle jika terus-menerus dipakai intensif
+- Kenapa `vm-be1` & `vm-be2` menggunakan 2 vCPU & 4 GB RAM: Hal ini untuk mendistribusikan beban komputasi API dan Gunicorn secara merata (high availability). Khusus pada vm-be1 yang juga menanggung proses I/O database MongoDB, kapasitas RAM 4 GB menjadi sangat krusial agar tidak terjadi bottleneck memory saat traffic tinggi.
+- Kenapa `vm-lb-fe` menggunakan 2 vCPU & 1 GB RAM: VM ini hanya bertugas menjalankan Nginx (sebagai Reverse Proxy / Load Balancer) dan melayani file statis Frontend. Proses routing traffic ini sangat ringan pada RAM namun membutuhkan CPU yang responsif untuk menangani banyak koneksi TCP, sehingga konfigurasi 2/1 adalah yang paling hemat biaya (cost-effective).
 
 ## 3. Implementasi
 
@@ -454,7 +452,7 @@ Frontend dapat diakses di `http://70.153.148.59`. Terhubung ke API backend melal
 
 ## 5. Hasil Load Testing
 
-Load testing dilakukan menggunakan **Locust 2.44.4** dari laptop lokal (bukan dari server) sesuai ketentuan soal.
+Load testing dilakukan menggunakan Locust dari laptop lokal dengan target http://70.153.148.59. Pembersihan antarskenario (db.orders.deleteMany({})) selalu dilakukan.
 
 **Konfigurasi Locust:**
 ```bash
@@ -544,16 +542,13 @@ mongosh orders_db --eval "db.orders.deleteMany({})"
 Berdasarkan hasil load testing dan monitoring resource via `htop`:
 
 **1. GET /orders — Response Time Tinggi**
-Endpoint `GET /orders` mengembalikan seluruh koleksi tanpa pagination — avg response time mencapai ~2849ms pada 50 user. Meski sudah ada index `created_at_-1`, volume data yang dikembalikan tetap menjadi bottleneck utama.
+Endpoint `GET /orders` mengembalikan seluruh koleksi tanpa pagination. Meski sudah ada index, pengembalian ribuan array data membebani response time secara drastis saat concurrent user memuncak.
 
-**2. Gunicorn Worker Exhaustion**
-Dengan 3 Gunicorn workers per VM, sistem mulai mengalami error **502 Bad Gateway** saat concurrent user melebihi ~400. Worker queue penuh karena setiap request ke `GET /orders` memegang koneksi cukup lama.
+**2. Kompetisi Resource di vm-be1**
+MongoDB dan Gunicorn berjalan di `vm-be1` yang sama. Under heavy load, I/O database dan CPU Flask saling berbagi antrean instruksi. Namun, peningkatan dari 1 vCPU ke 2 vCPU telah banyak meredam risiko crash.
 
-**3. MongoDB Berbagi Resource dengan Flask**
-MongoDB dan Gunicorn berjalan di vm-be1 yang sama, sehingga under heavy load keduanya berkompetisi untuk CPU dan memory. Namun dari monitoring htop, CPU usage hanya mencapai ~13% saat 200 user — mengkonfirmasi bottleneck ada di I/O dan connection handling, bukan CPU compute.
-
-**4. Kesimpulan Bottleneck:**
-`GET /orders` (no pagination) → Gunicorn worker exhaustion → 502 error. Bukan CPU-bound.
+**3. Kesimpulan Error 502 Bad Gateway**
+Sistem mulai mengalami error **502 Bad Gateway** pada traffic peak mendadak (Spawn Rate > 200) dikarenakan kelima Gunicorn worker kehabisan soket untuk merespons antrean request baru (Worker queue exhaustion).
 
 ---
 
@@ -561,13 +556,7 @@ MongoDB dan Gunicorn berjalan di vm-be1 yang sama, sehingga under heavy load ked
 
 ### Kesimpulan
 
-Sistem Order Processing Service berhasil di-deploy di Microsoft Azure dengan arsitektur 3 VM dan mampu melayani hingga **153.2 RPS** dengan 0% failure rate.
-
-Dari hasil load testing 5 skenario:
-- Sistem stabil hingga **300 concurrent user** dengan spawn rate bertahap (Skenario 1)
-- Failure pertama muncul saat concurrent user melebihi **~400** akibat Gunicorn worker exhaustion
-- Bottleneck utama bukan di CPU (max ~13%) melainkan di response time `GET /orders` yang mengembalikan seluruh koleksi tanpa batas
-- Error yang muncul adalah **502 Bad Gateway** — Gunicorn kehabisan worker, bukan crash server
+Sistem Order Processing Service berhasil di-deploy di Microsoft Azure menggunakan 3 VM dan skema Nginx Load Balancer dengan total biaya ~$72 (dalam budget). Spesifikasi (2 vCPU) di tiap VM terbukti menaikkan batas kapasitas Gunicorn (5 worker/VM) yang membuat aplikasi sangat stabil melayani RPS tinggi asalkan traffic masuk secara linear.
 
 ### Saran untuk Deployment Produksi
 
@@ -591,11 +580,8 @@ ExecStart=/home/azureuser/venv/bin/gunicorn \
 ```
 Gunakan rumus `(2 × vCPU) + 1`.
 
-**3. Pisahkan MongoDB ke VM Terpisah**
-Menghilangkan resource contention antara MongoDB dan Flask/Gunicorn di vm-be1, meningkatkan throughput kedua layanan secara signifikan.
+**3. Pemisahan MongoDB ke PaaS / VM Mandiri**
+Guna menstabilkan kinerja API, MongoDB disarankan untuk dipisah ke VM mandiri atau menggunakan Azure Cosmos DB for MongoDB.
 
-**4. Tambah VM Backend ke-3**
-Daftarkan ke upstream Nginx LB untuk meningkatkan total Gunicorn worker capacity dari 6 menjadi 9+ worker.
-
-**5. Implementasi Caching**
-Gunakan Redis untuk cache hasil `GET /orders` dengan TTL pendek (1-5 detik) guna mengurangi beban MongoDB saat traffic spike.
+**4. Implementasi Caching**
+Memanfaatkan **Redis** untuk mengamankan data hasil endpoint GET dengan TTL pendek saat flash sale, sehingga query langsung ke MongoDB dapat dieliminas
