@@ -581,7 +581,9 @@ ExecStart=/home/azureuser/venv/bin/gunicorn \
 Gunakan rumus `(2 × vCPU) + 1`.
 
 **3. Pemisahan MongoDB ke PaaS / VM Mandiri**
+
 Guna menstabilkan kinerja API, MongoDB disarankan untuk dipisah ke VM mandiri atau menggunakan Azure Cosmos DB for MongoDB.
 
 **4. Implementasi Caching**
+
 Memanfaatkan **Redis** untuk mengamankan data hasil endpoint GET dengan TTL pendek saat flash sale, sehingga query langsung ke MongoDB dapat dieliminas
