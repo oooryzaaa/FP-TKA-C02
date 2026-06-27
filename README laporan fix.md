@@ -8,7 +8,7 @@
 | Oryza Qiara Ramadhani | 5027241084 |
 | Az Zahrra Tasya Adelia | 5027241087 |
 | Naila Raniyah Hanan | 5027241078 |
-| Nadia Kirana Afifah Prahandita |
+| Nadia Kirana Afifah Prahandita | 5027241005 |
 | Kaisar Hanif Pratama | 5027241029 |
 | Gemilang Ananda Lingua | 5027241072 |
 | Muhammad Huda Rabbani | 5027241098 |
